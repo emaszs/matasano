@@ -55,20 +55,29 @@ class my_ciphers:
         
         if char.isalpha():
             return charScores[char]
-        elif char.isdigit() or char in string.punctuation:
-            return charScores["non-alph"]
+#         elif char.isdigit() or char in string.punctuation:
+#             return charScores["non-alph"]
         elif char == " ":
             return charScores[" "]
         else:
             return 0
         
     def runSbxDecryptTests(self, code):
+        bestTotal = 0
+        bestChar = ""
         for cipher in string.ascii_letters:
             decodedString = self.singleByteCipher(code, cipher)
-            print (codecs.decode(decodedString, 'hex'))
-#             total = 0
-#             for char in decodedString:
-#                 
-#                 total += self.getCharScore(char)
-        
+            decodedString = codecs.decode(decodedString, 'hex')
+            decodedString = codecs.decode(decodedString, 'UTF-8')
+            print ("Decoded string: ", decodedString)
+            total = 0
+            for char in decodedString:
+                total += self.getCharScore(char)
+            print (total, cipher)
+            if total > bestTotal:
+                bestTotal = total
+                bestChar = cipher
+                
+        bestDecodedString = codecs.decode(codecs.decode(self.singleByteCipher(code, bestChar), 'hex'), 'UTF-8')
+        print(bestTotal, bestChar, bestDecodedString)
         
