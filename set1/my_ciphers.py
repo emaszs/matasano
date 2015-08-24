@@ -16,7 +16,7 @@ class my_ciphers:
         Returns a base64 encoded hex string. Base64 has 64 characters, hex has 16.
         Therefore, the resulting string is shorter than input.
         """
-        return str(base64.b64encode(codecs.decode(hexData, 'hex')), encoding="UTF-8")
+        return str(base64.b64encode(bytes.fromhex(hexData)), encoding="UTF-8")
     
     def fixedXOR(self, hex1, hex2):
         """
@@ -68,19 +68,17 @@ class my_ciphers:
         bestTotal = 0
         bestChar = ""
         for cipher in string.ascii_letters + string.digits + string.punctuation:
-#             print (code)
+            # XOR string with a single byte ascii character
             decodedString = self.singleByteCipher(code, cipher)
             print ("Decrypted string:", decodedString, "Cipher:", cipher)
-#             print (decodedString)
-            decodedString = codecs.decode(decodedString, "hex")
-#             print (decodedString)
-            decodedString = codecs.decode(decodedString, "UTF-8", "replace")
-#             print (decodedString)
-#             print ("Decoded string: ", decodedString)
+            # Get bytes from the resulting hex string
+            decodedString = bytes.fromhex(decodedString)
+            # Get UTF-8 from bytes
+            decodedString = decodedString.decode("UTF-8", "replace")
+
             total = 0
             for char in decodedString:
                 total += self.getCharScore(char)
-#             print (total, cipher)
             if total > bestTotal:
                 bestTotal = total
                 bestChar = cipher
