@@ -5,8 +5,8 @@ Created on Aug 21, 2015
 '''
 
 import base64
-import codecs
 import string
+import codecs
 
 class my_ciphers:
     
@@ -70,7 +70,6 @@ class my_ciphers:
         for cipher in string.ascii_letters + string.digits + string.punctuation:
             # XOR string with a single byte ascii character
             decodedString = self.singleByteCipher(code, cipher)
-            print ("Decrypted string:", decodedString, "Cipher:", cipher)
             # Get bytes from the resulting hex string
             decodedString = bytes.fromhex(decodedString)
             # Get UTF-8 from bytes
@@ -99,5 +98,34 @@ class my_ciphers:
                     bestScore = score
                     bestResult = result
             
-        print (bestResult)
+        return bestResult
         
+    def utf8ToHex(self, data):
+        res = ""
+        for char in data:
+            res += hex(ord(char)).replace("0x", "")
+        return res
+        
+    def repeatingKeyXor(self, inputData, key): 
+        # TODO
+        keyLen = len(key)
+        
+        res = ""
+        for i in range(len(inputData)):
+            keyChar = key[i % keyLen]
+            dataChar = inputData[i]
+            hexKeyChar = hex(ord(keyChar)).replace("0x", "").zfill(2)
+            hexDataChar = hex(ord(dataChar)).replace("0x", "").zfill(2)
+            res += self.fixedXOR(hexKeyChar, hexDataChar)
+        return res
+    
+    def calculateHammingDist(self, input1, input2):
+        binInput1 = bytes(input1, 'ascii')
+        binInput2 = bytes(input2, 'ascii')
+        # XOR all bytes. Set bits then indicate the places where the strings are different bite-wise.
+        xorBytes = bytes([b1^b2 for (b1,b2) in zip(binInput1, binInput2)])
+        # For each byte, count the 1st bit 8 times and then shift it right.
+        return sum( (xorBytes[j] >> i) & 1 for i in range(8) for j in range(len(xorBytes)))
+        print (xorBytes.count(b'1'))
+        print (xorBytes.count(1))
+            
