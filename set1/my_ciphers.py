@@ -24,7 +24,7 @@ class my_ciphers:
         """
         xoredStr = ""
         for n1, n2 in zip(hex1, hex2):
-            # Convert hex characters to decimal numbers and xor them 
+            # Convert hex characters to decimal ints and XOR them 
             m1 = int(n1, 16)
             m2 = int(n2, 16)
             xoredStr += hex(m1 ^ m2)[2:]
@@ -83,29 +83,20 @@ class my_ciphers:
                 bestTotal = total
                 bestChar = cipher
                 
-                
         hexDecodedString = self.singleByteCipher(code, bestChar)
-        print ("Hex decoded string:", hexDecodedString)  
-        hexActualString = codecs.decode(hexDecodedString, 'hex')  
-        print ("Actual hex string:", hexActualString)    
-        bestDecodedString = codecs.decode(hexActualString, 'UTF-8', "replace")
-        print ("Resulting string:", bestDecodedString, "Score:", bestTotal, "Chars: ")
-        return (bestTotal, bestChar, bestDecodedString)
+        byteHexString = bytes.fromhex(hexDecodedString) 
+        bestDecodedUtfString = byteHexString.decode("UTF-8", "replace")
+        return (bestTotal, bestChar, bestDecodedUtfString)
         
     def sbxDecryptMultipleLines(self, inputFile):
         bestScore = 0
-        bestString = ""
-        bestChar = ""
         bestResult = []
         with open(inputFile, 'r') as f:
             for line in f:
-#                 print ("Running decrypt on", line)
                 result = self.runSbxDecryptTests(line)
                 score = result[0]
                 if score > bestScore:
                     bestScore = score
-                    bestString = result[2]
-                    bestChar = result[1]
                     bestResult = result
             
         print (bestResult)
