@@ -6,7 +6,9 @@ Created on Aug 21, 2015
 
 import base64
 import string
-import codecs
+import codecs 
+import binascii
+from audioop import avg
 
 class my_ciphers:
     
@@ -88,9 +90,13 @@ class my_ciphers:
         return (bestTotal, bestChar, bestDecodedUtfString)
         
     def sbxDecryptMultipleLines(self, inputFile):
+        """
+        Takes encrypted liens of hex from file. Tries decrypting each, returns one which 
+        received the highest score.
+        """
         bestScore = 0
         bestResult = []
-        with open(inputFile, 'r') as f:
+        with open(inputFile, "r") as f:
             for line in f:
                 result = self.runSbxDecryptTests(line)
                 score = result[0]
@@ -107,16 +113,13 @@ class my_ciphers:
         return res
         
     def repeatingKeyXor(self, inputData, key): 
-        # TODO
         keyLen = len(key)
         
         res = ""
         for i in range(len(inputData)):
             keyChar = key[i % keyLen]
             dataChar = inputData[i]
-            hexKeyChar = hex(ord(keyChar)).replace("0x", "").zfill(2)
-            hexDataChar = hex(ord(dataChar)).replace("0x", "").zfill(2)
-            res += self.fixedXOR(hexKeyChar, hexDataChar)
+            res += hex(ord(keyChar) ^ ord(dataChar)).replace("0x", "").zfill(2)
         return res
     
     def calculateHammingDist(self, input1, input2):
@@ -126,6 +129,54 @@ class my_ciphers:
         xorBytes = bytes([b1^b2 for (b1,b2) in zip(binInput1, binInput2)])
         # For each byte, count the 1st bit 8 times and then shift it right.
         return sum( (xorBytes[j] >> i) & 1 for i in range(8) for j in range(len(xorBytes)))
-        print (xorBytes.count(b'1'))
-        print (xorBytes.count(1))
+    
+    def getBlock(self, inputString, blockSize, blockNum):
+        return inputString[blockNum*blockSize : (blockNum+1)*blockSize]
+                
+    def base64ToHex(self, inputFile, outputFile):
+        result = ""
+        with open(inputFile, "r") as fin:
+            for line in fin:
+#                 fout.write(base64.b64decode(line))
+                result += binascii.hexlify((base64.b64decode(line))).decode("UTF-8")
+            
+        return result
+#     def calculateKeysize(self, data):
+
+    def findKeySize(self, inputString, start=2, end=40):
+        """
+        Calculate and averages Hamming distances between blocks of various length. 
+        The length which produces the smallest distances overall is likely to be the
+        size of the repeating cipher key.
+        """
+        distances = []
+        for keySize in range(start, end):
+            total = 0
+            timesCompared = 0
+            # Because 2 hex == 1 ascii character
+            singleBlockSize = keySize * 2
+            for i in range(len(inputString) // (singleBlockSize*2)):
+                offset = i * singleBlockSize * 2
+                # Get Hamming distance between 1st and 2nd blocks.
+                hDist = self.calculateHammingDist(inputString[offset : offset + singleBlockSize],
+                                                   inputString[offset + singleBlockSize : offset + singleBlockSize*2])
+                # Normalize
+                timesCompared += 1
+                total += hDist / float(keySize)
+            # Get average from all comparisons    
+            total /= float(timesCompared)
+            distances.append([total, keySize])
+            
+        distances.sort(key=lambda x: x[0])
+        return distances
+        
+    def getTransposedBlock(self, inputString, keySize, blockOffset):
+        
+        assert blockOffset < keySize
+        
+        block = ""
+        for i in range(blockOffset, len(inputString), keySize * 2):
+            offset = i * keySize * 2
+            block += inputString[i:i + 2]
+        return block
             
