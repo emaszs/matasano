@@ -39,7 +39,7 @@ class my_ciphers:
         is only half as long.
         """
         cipherLen = int(len(code) * 0.5)
-        cipherString = cipherLen * hex(ord(character)).replace("0x", "")
+        cipherString = cipherLen * hex(ord(character)).replace("0x", "").zfill(2)
         return (self.fixedXOR(code, cipherString))
         
     def getCharScore(self, char):
@@ -69,10 +69,11 @@ class my_ciphers:
         """
         bestTotal = 0
         bestChar = ""
-        for cipher in string.ascii_letters + string.digits + string.punctuation:
+        bestGuesses = []
+        for cipher in string.printable:
             # XOR string with a single byte ascii character
             decodedString = self.singleByteCipher(code, cipher)
-            # Get bytes from the resulting hex string
+            # Get bytes from the resulting hex string)
             decodedString = bytes.fromhex(decodedString)
             # Get UTF-8 from bytes
             decodedString = decodedString.decode("UTF-8", "replace")
@@ -80,18 +81,23 @@ class my_ciphers:
             total = 0
             for char in decodedString:
                 total += self.getCharScore(char)
+                
             if total > bestTotal:
                 bestTotal = total
                 bestChar = cipher
                 
+            bestGuesses.append((total, char))
+
+                
         hexDecodedString = self.singleByteCipher(code, bestChar)
         byteHexString = bytes.fromhex(hexDecodedString) 
         bestDecodedUtfString = byteHexString.decode("UTF-8", "replace")
+#         print (bestGuesses)
         return (bestTotal, bestChar, bestDecodedUtfString)
         
     def sbxDecryptMultipleLines(self, inputFile):
         """
-        Takes encrypted liens of hex from file. Tries decrypting each, returns one which 
+        Takes encrypted lines of hex from file. Tries decrypting each, returns one which 
         received the highest score.
         """
         bestScore = 0
@@ -133,7 +139,7 @@ class my_ciphers:
     def getBlock(self, inputString, blockSize, blockNum):
         return inputString[blockNum*blockSize : (blockNum+1)*blockSize]
                 
-    def base64ToHex(self, inputFile, outputFile):
+    def base64ToHex(self, inputFile):
         result = ""
         with open(inputFile, "r") as fin:
             for line in fin:
@@ -175,8 +181,14 @@ class my_ciphers:
         assert blockOffset < keySize
         
         block = ""
-        for i in range(blockOffset, len(inputString), keySize * 2):
+        for i in range(blockOffset * 2, len(inputString), keySize * 2):
             offset = i * keySize * 2
             block += inputString[i:i + 2]
         return block
-            
+    
+    def getAllTransposedBlocks(self, inputString, keySize):
+        transposedBlocks = list()
+        for i in range(keySize):
+            transposedBlocks.append(self.getTransposedBlock(inputString, keySize, i))
+        return transposedBlocks
+        
