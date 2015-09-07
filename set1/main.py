@@ -5,6 +5,8 @@ Created on Aug 21, 2015
 '''
 from set1 import my_ciphers   
 import codecs  
+from Crypto.Cipher import AES
+import base64
 
 c = my_ciphers.my_ciphers()
 # # Challenge 1
@@ -58,3 +60,10 @@ c = my_ciphers.my_ciphers()
 # hexDecoded = c.repeatingKeyXor(asciiCode, "Terminator X: Bring the noise")
 # asciiDecoded = codecs.decode(bytes.fromhex(hexDecoded), "ascii")
 # print (asciiDecoded)
+
+aesEncrypted = ""
+with open("7.txt", "r") as fin:
+    for line in fin:
+        aesEncrypted += line.strip()
+
+print (c.decryptAESinECB(aesEncrypted, b"YELLOW SUBMARINE"))

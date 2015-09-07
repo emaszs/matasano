@@ -8,7 +8,7 @@ import base64
 import string
 import codecs 
 import binascii
-from audioop import avg
+from Crypto.Cipher import AES
 
 class my_ciphers:
     
@@ -191,4 +191,9 @@ class my_ciphers:
         for i in range(keySize):
             transposedBlocks.append(self.getTransposedBlock(inputString, keySize, i))
         return transposedBlocks
-        
+    
+    def decryptAESinECB(self, inputString, key):
+        aesEncryptedBytes = base64.b64decode(inputString)
+        cipher = AES.new(key, AES.MODE_ECB)
+        msg = cipher.decrypt(aesEncryptedBytes)
+        return (msg.decode("ascii"))
